@@ -76,17 +76,31 @@ router.put("/:id", async (req, res, next) => {
     if ("id" in req.body) {
       throw new ExpressError("Not allowed", 400);
     }
-    const { amt } = req.body;
-    const result = await db.query(
+    let { amt, paid } = req.body;
+    if (paid === true) {
+      let result = await db.query(
+        `UPDATE invoices 
+        SET amt =$2, paid=$3, paid_date=$4
+        WHERE id = $1
+        RETURNING id,comp_code,amt,paid,add_date,paid_date
+        `,
+        [req.params.id, amt, paid, new Date()]
+      );
+      if (result.rows.length === 0) {
+        throw new ExpressError(`No invoice with ID ${req.params.id}`, 404);
+      }
+      return res.json({ invoice: result.rows[0] });
+    }
+    let result = await db.query(
       `UPDATE invoices 
-      SET amt =$2
+      SET amt =$2, paid =$3, paid_date =$4
       WHERE id = $1
       RETURNING id,comp_code,amt,paid,add_date,paid_date
       `,
-      [req.params.id, amt]
+      [req.params.id, amt, paid, null]
     );
     if (result.rows.length === 0) {
-      throw new ExpressError(`No invoice with ID ${req.params.code}`, 404);
+      throw new ExpressError(`No invoice with ID ${req.params.id}`, 404);
     }
     return res.json({ invoice: result.rows[0] });
   } catch (e) {
