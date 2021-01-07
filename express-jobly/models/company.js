@@ -18,26 +18,21 @@ class Company {
 
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(
-          `SELECT handle
+      `SELECT handle
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]
+    );
 
     if (duplicateCheck.rows[0])
       throw new BadRequestError(`Duplicate company: ${handle}`);
 
     const result = await db.query(
-          `INSERT INTO companies
+      `INSERT INTO companies
            (handle, name, description, num_employees, logo_url)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"`,
-        [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      [handle, name, description, numEmployees, logoUrl]
     );
     const company = result.rows[0];
 
@@ -49,15 +44,51 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    const companiesRes = await db.query(
-          `SELECT handle,
+  static async findAll(search = {}) {
+    let query = `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
+           FROM companies`;
+
+    let whereParams = [];
+    let queryValues = [];
+
+    // Create variables based on passed throught query paramaters
+    const { name, minEmployees, maxEmployees } = search;
+
+    // If the minEmployees value is larger than maxEmployees, throw an error
+    if (minEmployees > maxEmployees) {
+      throw new BadRequestError(
+        "maxEmployees must be greater than minEmployees"
+      );
+    }
+
+    // Checks if search parameter is used and adds it to whereParams list and queryValues to render the correct SQL query
+    if (name) {
+      queryValues.push(`%${name}%`);
+      whereParams.push(`name ILIKE $${queryValues.length}`);
+    }
+
+    if (minEmployees) {
+      queryValues.push(minEmployees);
+      whereParams.push(`num_employees >= $${queryValues.length}`);
+    }
+    if (maxEmployees) {
+      queryValues.push(maxEmployees);
+      whereParams.push(`num_employees <= $${queryValues.length}`);
+    }
+    // If query params were passed, a WHERE statement will be added to the SQL query and all items in whereParams list, will be joined with AND and added as well.
+    if (whereParams.length > 0) {
+      query += " WHERE ";
+      query += whereParams.join(" AND ");
+    }
+
+    //
+    query += " ORDER BY name ";
+    const companiesRes = await db.query(query, queryValues);
+
     return companiesRes.rows;
   }
 
@@ -71,14 +102,15 @@ class Company {
 
   static async get(handle) {
     const companyRes = await db.query(
-          `SELECT handle,
+      `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]
+    );
 
     const company = companyRes.rows[0];
 
@@ -100,12 +132,10 @@ class Company {
    */
 
   static async update(handle, data) {
-    const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+    const { setCols, values } = sqlForPartialUpdate(data, {
+      numEmployees: "num_employees",
+      logoUrl: "logo_url"
+    });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `UPDATE companies 
@@ -131,16 +161,16 @@ class Company {
 
   static async remove(handle) {
     const result = await db.query(
-          `DELETE
+      `DELETE
            FROM companies
            WHERE handle = $1
            RETURNING handle`,
-        [handle]);
+      [handle]
+    );
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
 }
-
 
 module.exports = Company;
