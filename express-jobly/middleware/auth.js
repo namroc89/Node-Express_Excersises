@@ -34,11 +34,15 @@ function authenticateJWT(req, res, next) {
 
 function ensureLoggedIn(req, res, next) {
   try {
+    if (!res.locals.user) {
+      throw new UnauthorizedError();
+    }
     if (
       !res.locals.user.isAdmin &&
       req.params.username !== res.locals.user.username
-    )
+    ) {
       throw new UnauthorizedError();
+    }
     return next();
   } catch (err) {
     return next(err);
