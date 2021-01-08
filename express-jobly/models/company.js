@@ -39,7 +39,7 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Find all companies if left empty. Search based on filters if correct filter parameters are passed.
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
