@@ -85,7 +85,7 @@ class Company {
       query += whereParams.join(" AND ");
     }
 
-    //
+    // add an ORDER BY to the SQL query regardless of if any parameters were passed and make request.
     query += " ORDER BY name ";
     const companiesRes = await db.query(query, queryValues);
 
