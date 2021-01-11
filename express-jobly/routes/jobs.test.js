@@ -104,7 +104,7 @@ describe("GET /jobs", function () {
           title: "j3",
           salary: 70000,
           equity: "0",
-          companyHandle: "c3"
+          companyHandle: "c2"
         },
         {
           id: expect.any(Number),
@@ -157,7 +157,7 @@ describe("GET /jobs/ with filters", function () {
           title: "j3",
           salary: 70000,
           equity: "0",
-          companyHandle: "c3"
+          companyHandle: "c2"
         },
         {
           id: expect.any(Number),
@@ -215,7 +215,7 @@ describe("GET /jobs/ with filters", function () {
           title: "j3",
           salary: 70000,
           equity: "0",
-          companyHandle: "c3"
+          companyHandle: "c2"
         },
         {
           id: expect.any(Number),
@@ -240,7 +240,7 @@ describe("GET /jobs/ with filters", function () {
           title: "j3",
           salary: 70000,
           equity: "0",
-          companyHandle: "c3"
+          companyHandle: "c2"
         }
       ]
     });
