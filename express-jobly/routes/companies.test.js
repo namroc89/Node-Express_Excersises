@@ -319,7 +319,7 @@ describe("PATCH /companies/:handle", function () {
 
   test("Error for non-admin user", async function () {
     const resp = await request(app)
-      .post("/companies")
+      .patch("/companies/c1")
       .send({
         handle: "c1-new"
       })
@@ -331,7 +331,7 @@ describe("PATCH /companies/:handle", function () {
 /************************************** DELETE /companies/:handle */
 
 describe("DELETE /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`)
       .set("authorization", `Bearer ${adminToken}`);
