@@ -113,4 +113,20 @@ router.delete("/:username", ensureAdmin, async function (req, res, next) {
   }
 });
 
+/** POST /:username/jobs/:id change application status to applied
+ */
+
+router.post(
+  "/:username/jobs/:id",
+  ensureAdmin,
+  async function (req, res, next) {
+    try {
+      await User.apply(req.params.username, req.params.id);
+      return res.json({ applied: req.params.id });
+    } catch (e) {
+      return next(e);
+    }
+  }
+);
+
 module.exports = router;
